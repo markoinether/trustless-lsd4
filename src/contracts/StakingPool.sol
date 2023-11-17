@@ -1,11 +1,10 @@
 //SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.17;
 
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-// import "./interfaces/IDepositContract.sol";
-import "./interfaces/mocks/ISSVNetwork.sol";
+import "../interfaces/IDepositContract.sol";
+import "../interfaces/mocks/ISSVNetwork.sol";
 import "./SSVETH.sol";
 
 /** this contract utilizes custom errors to optimize gas usage, instead of normal `require` conditionals.
@@ -17,7 +16,7 @@ error StakingPool__OnlyWhitelistAddress(
     address whitelistedAddress
 );
 
-contract StakingPool is Ownable, ReentrancyGuard {
+contract StakingPool is ReentrancyGuard {
     address public WhitelistKeyGenerator;
     address public WITHDRAWAL_ADDRESS;
     IDepositContract immutable DepositContract;
@@ -116,7 +115,7 @@ contract StakingPool is Ownable, ReentrancyGuard {
      * @dev Update operators
      * @param _newOperators: Array of the the new operators Ids
      */
-    function updateOperators(uint32[4] memory _newOperators) public onlyOwner {
+    function updateOperators(uint32[4] memory _newOperators) public {
         OperatorIDs = _newOperators;
         emit OperatorIDsChanged(_newOperators);
     }
@@ -125,7 +124,7 @@ contract StakingPool is Ownable, ReentrancyGuard {
      * @dev Update share price of the staking pool
      * @param _newBeaconRewards: The new beacon rewards amount
      */
-    function updateBeaconRewards(uint256 _newBeaconRewards) external onlyOwner {
+    function updateBeaconRewards(uint256 _newBeaconRewards) external {
         beaconRewards = _newBeaconRewards;
         uint256 _newSharePrice = (beaconRewards +
             executionRewards +
@@ -173,6 +172,9 @@ contract StakingPool is Ownable, ReentrancyGuard {
         bytes calldata _signature,
         bytes32 _deposit_data_root
     ) external {
+        // Check that _pubkey corresponds to the address we passed in the constructor
+        bytes32 hash = keccak256(_pubkey);
+        require (WITHDRAWAL_ADDRESS == address(uint160(bytes20(hash))));
         // Deposit the validator to the deposit contract
         DepositContract.deposit{value: VALIDATOR_AMOUNT}(
             _pubkey,
