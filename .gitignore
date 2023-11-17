@@ -16,3 +16,4 @@ docs/
 __pycache__
 validator_keys
 keyshares
+ssv-cli
