@@ -52,6 +52,7 @@ class OperatorData:
 
 class SSV:
     CLI_PATH_LINUX_MAC = os.getcwd() + "/ssv/ssv-cli"
+    CLI_PATH_DKG_LINUX_MAC = 'docker'
     CLI_PATH_WIN = os.getcwd() + "/ssv/ssv-cli.exe"
     ssv_share_file = None
     keystore_file = None
@@ -78,6 +79,33 @@ class SSV:
         output = check_output([cli_path, "shares", "-kp", self.keystore_file, "-ps", self.keystore_pass,
                                "-oids", ",".join(operator_ids), "-oks", ",".join(operator_pubkeys),
                                "-of", output_folder, "-oa", owner_address, "-on", str(nonce)])
+        if "UnhandledPromiseRejectionWarning" in output.decode("utf-8"):
+            raise Exception("ssv-cli failed to generate keyshares")
+        elif "Error" in output.decode("utf-8"):
+            raise Exception("ssv-cli failed to generate keyshares")
+        else:
+            return output_folder + output.decode("utf-8").partition("keyshares")[2].partition(".json")[0] + ".json"
+        
+    def generate_shares_dkg(self, operator_data: List[Operator], owner_address, nonce):
+        """
+
+        :return:
+        """
+        print("===================================================================================")
+        operator_ids = [str(operator.id) for operator in operator_data]
+        operator_pubkeys = [operator.pubkey for operator in operator_data]
+        output_folder = os.getcwd() + "/keyshares_dkg"
+        cli_path = self.CLI_PATH_DKG_LINUX_MAC if 'Linux' in platform.system() or 'Darwin' in platform.system() else self.CLI_PATH_WIN
+        
+        cfg = dict
+        cfg["operatorIds"] = operator_ids
+        cfg["withdrawAddress"] = 
+
+        
+        output = check_output([cli_path, 'run', '--name', 'ssv_dkg_initiator', '-it', 
+            '-v', os.getcwd() + '/configs:/data', 'bloxstaking/ssv-dkg:latest', '/app init --generateInitiatorKey \
+            --configPath /data/initiator.yaml && \
+            docker rm ssv_dkg_initiator'])
         if "UnhandledPromiseRejectionWarning" in output.decode("utf-8"):
             raise Exception("ssv-cli failed to generate keyshares")
         elif "Error" in output.decode("utf-8"):

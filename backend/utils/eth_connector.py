@@ -6,7 +6,6 @@ import requests
 
 class EthNode:
     account = None
-    address = "0x706af33e754D8d3647eA3ED45751111FbC2305E1"
     eth_node = None
     local = False
 
@@ -22,7 +21,7 @@ class EthNode:
 
     def make_fake_tx(self, tx):
         tx['nonce'] = self.eth_node.eth.get_transaction_count(
-            self.address)
+            self.account.address)
         tx_hash = self.eth_node.eth.send_transaction(tx)
         tx_receipt = self.eth_node.eth.wait_for_transaction_receipt(tx_hash)
         if tx_receipt.status == 1:
@@ -39,10 +38,10 @@ class EthNode:
             return False
         
     def make_tx(self, tx):
-        return self.make_fake_tx(tx)
+        # return self.make_fake_tx(tx)
         # self.eth_node.eth.call(tx)
         tx['nonce'] = self.eth_node.eth.get_transaction_count(
-            self.address)
+            self.account.address)
         # self.eth_node.eth.call(tx)
         # if self.local:
         #     tx.pop('maxFeePerGas')

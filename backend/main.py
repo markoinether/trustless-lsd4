@@ -92,16 +92,16 @@ def deposit_keyshare(config_file):
             print(
                 "ssv token balance of stakepool is less than the required amount. Sending some tokens")
             if ssv_token.get_balance(
-                    web3_eth.eth_node.toChecksumAddress(web3_eth.address)) > 2 * int(
+                    web3_eth.eth_node.toChecksumAddress(web3_eth.account.address)) > 2 * int(
                 shares.payload.readable.ssvAmount):
                 tx = ssv_token.transfer_token(web3_eth.eth_node.toChecksumAddress(config.stakepool_contract),
-                                              2 * int(shares.payload.readable.ssvAmount), web3_eth.address)
+                                              2 * int(shares.payload.readable.ssvAmount), web3_eth.account.address)
                 web3_eth.make_tx(tx)
                 print("Added SSV tokens to stakepool account")
-            elif ssv_token.get_balance(web3_eth.eth_node.toChecksumAddress(web3_eth.address)) > int(
+            elif ssv_token.get_balance(web3_eth.eth_node.toChecksumAddress(web3_eth.account.address)) > int(
                     shares.payload.readable.ssvAmount):
                 tx = ssv_token.transfer_token(web3_eth.eth_node.toChecksumAddress(config.contract_address.stakepool),
-                                              int(shares.payload.readable.ssvAmount), web3_eth.address)
+                                              int(shares.payload.readable.ssvAmount), web3_eth.account.address)
                 web3_eth.make_tx(tx)
                 print(
                     "WARNING!!!! Balance too low for account and stakepool for SSV tokens. Please add some")
@@ -113,7 +113,7 @@ def deposit_keyshare(config_file):
                                         shares.payload.readable.sharePublicKeys,
                                         shares.payload.readable.sharePrivateKey,
                                         int(shares.payload.readable.ssvAmount),
-                                        web3_eth.address)
+                                        web3_eth.account.address)
         web3_eth.make_tx(tx)
         print("ssv shares submitted to the contract")
 
@@ -138,7 +138,7 @@ def deposit_validator(config_file):
                                           deposit.withdrawal_credentials,
                                           deposit.signature,
                                           deposit.deposit_data_root,
-                                          web3_eth.address)
+                                          web3_eth.account.address)
         if web3_eth.make_tx(tx):
             print("key deposited for validator: {}".format(deposit.pubkey))
         else:
@@ -215,7 +215,7 @@ def start_staking(config_file):
                                                       "0x" + cred.withdrawal_credentials,
                                                       "0x" + cred.signature,
                                                       "0x" + cred.deposit_data_root,
-                                                      web3_eth.address)
+                                                      web3_eth.account.address)
                     web3_eth.make_tx(tx)
                     fallback[cred.pubkey] = {
                         "keystore": keystores[index], "ssv_share": ""}
@@ -252,6 +252,7 @@ def start_staking(config_file):
                         nonce = ssv_contract.get_latest_nonce(config.contract_address.stakepool)
                         print(nonce)
                         file = ssv.generate_shares(op,config.contract_address.stakepool,nonce)
+                        #file = ssv.generate_shares_dkg(op,config.contract_address.stakepool,nonce)
                         fallback[pubkey]["ssv_share"] = file
                         shares = ssv.get_keyshare(file)
                     else:
@@ -266,19 +267,19 @@ def start_staking(config_file):
                         print(
                             "ssv token balance of stakepool is less than the required amount. Sending some tokens")
                         if ssv_token.get_balance(
-                                web3_eth.eth_node.toChecksumAddress(web3_eth.address)) > 2 * int(fees):
+                                web3_eth.eth_node.toChecksumAddress(web3_eth.account.address)) > 2 * int(fees):
                             tx = ssv_token.transfer_token(
                                 web3_eth.eth_node.toChecksumAddress(
                                     config.contract_address.stakepool),
-                                2 * int(fees), web3_eth.address)
+                                2 * int(fees), web3_eth.account.address)
                             web3_eth.make_tx(tx)
                             print("Added SSV tokens to stakepool account")
                         elif ssv_token.get_balance(
-                                web3_eth.eth_node.toChecksumAddress(web3_eth.address)) > int(fees):
+                                web3_eth.eth_node.toChecksumAddress(web3_eth.account.address)) > int(fees):
                             tx = ssv_token.transfer_token(
                                 web3_eth.eth_node.toChecksumAddress(
                                     config.contract_address.stakepool),
-                                int(fees), web3_eth.address)
+                                int(fees), web3_eth.account.address)
                             web3_eth.make_tx(tx)
                             print(
                                 "WARNING!!!! Balance too low for account and stakepool for SSV tokens. Please add some")
@@ -287,10 +288,11 @@ def start_staking(config_file):
                                 "ERROR!!!! keys shares not added as your account doesn't have enough SSV tokens")
                     cluster = ssv_contract.get_latest_cluster(
                         config.contract_address.stakepool, operator_id)
+                    #cluster = [0, 0, 0, True, 0]
                     print(cluster)
                     tx = stake_pool.send_key_shares(shares["publicKey"], operator_id,
                                                     shares["sharesData"], fees, cluster,
-                                                    web3_eth.address)
+                                                    web3_eth.account.address)
                     if web3_eth.make_tx(tx):
                         print("ssv shares submitted to the contract")
                     fallback.pop(pubkey)
