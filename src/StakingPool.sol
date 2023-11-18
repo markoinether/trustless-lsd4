@@ -223,6 +223,9 @@ contract StakingPool is Ownable, ReentrancyGuard {
      * @param _newExecutionRewards:  Execution rewards amount added
      */
     function updateExecutionRewards(uint256 _newExecutionRewards) internal {
+        // TODO mevSmoothingPool, create contract, get interface
+        // uint256 executionRewards = address(mevSmoothingPool).balance;
+        // im
         executionRewards += _newExecutionRewards;
     }
 
