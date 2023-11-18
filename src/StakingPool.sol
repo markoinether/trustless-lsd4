@@ -6,12 +6,13 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./interfaces/IDepositContract.sol";
 import "./interfaces/mocks/ISSVNetwork.sol";
+import "./helpers/Helpers.sol";
 import "./SSVETH.sol";
 
 /** this contract utilizes custom errors to optimize gas usage, instead of normal `require` conditionals.
  * By using custom errors instead, we don't need to use up storage space on the `require`'s revert string messages.
  * This also allows developers and users to see customizable output values when the custom error is invoked */
-contract StakingPool is Ownable, ReentrancyGuard {
+contract StakingPool is Ownable, ReentrancyGuard, Helpers {
     address public WhitelistKeyGenerator;
     address public WITHDRAWAL_ADDRESS;
     IDepositContract immutable DepositContract;
@@ -40,6 +41,10 @@ contract StakingPool is Ownable, ReentrancyGuard {
 
     error StakingPool__CantStakeZeroAmount(uint256 value);
     error StakingPool__OnlyWhitelistAddress(address sender, address whitelist);
+    error StakingPool__WrongWithdrawalAddress(
+        address depositData_address,
+        address withdrawal_address
+    );
 
     constructor(
         address keyGenerator,
@@ -170,7 +175,17 @@ contract StakingPool is Ownable, ReentrancyGuard {
         bytes calldata _signature,
         bytes32 _deposit_data_root
     ) external {
+        // Checks if withdrawal address is correct
+
+        if (bytesToAddress(_withdrawal_credentials) != WITHDRAWAL_ADDRESS) {
+            revert StakingPool__WrongWithdrawalAddress(
+                bytesToAddress(_withdrawal_credentials),
+                WITHDRAWAL_ADDRESS
+            );
+        }
+
         // Deposit the validator to the deposit contract
+
         DepositContract.deposit{value: VALIDATOR_AMOUNT}(
             _pubkey,
             _withdrawal_credentials,
