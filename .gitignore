@@ -18,3 +18,4 @@ __pycache__
 validator_keys
 keyshares
 ssv-cli
+fallback.json
