@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract SSVETH is ERC20, Ownable {
     address public minter;
-    uint256 public sharePrice = 1e18;
+    uint256 public sharePrice = 1e18; // ratio of ssvETH to ETH, so to count rewards
 
     // ICommon immutable CommonContract;
     constructor() ERC20("decentralized staking with ssv", "ssvETH") {

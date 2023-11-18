@@ -13,7 +13,7 @@ import "./SSVETH.sol";
  * This also allows developers and users to see customizable output values when the custom error is invoked */
 contract StakingPool is Ownable, ReentrancyGuard {
     address public WhitelistKeyGenerator;
-    address public WITHDRAWAL_ADDRESS;
+    // address public WITHDRAWAL_ADDRESS;
     IDepositContract immutable DepositContract;
     SSVETH public ssvETH;
     uint256 public immutable VALIDATOR_AMOUNT = 32 * 1e18;
@@ -38,15 +38,18 @@ contract StakingPool is Ownable, ReentrancyGuard {
         uint256 amount
     );
 
+    error StakingPool__CantStakeZeroAmount(uint256 value);
+    error StakingPool__OnlyWhitelistAddress(address sender, address whitelist);
+
     constructor(
         address keyGenerator,
         address depositAddress,
-        address withdrawal,
+        // address withdrawal,
         address ssv_contract,
         address ssv_token,
         uint32[4] memory ids
     ) {
-        WITHDRAWAL_ADDRESS = withdrawal;
+        // WITHDRAWAL_ADDRESS = withdrawal;
         WhitelistKeyGenerator = keyGenerator;
         DepositContract = IDepositContract(depositAddress);
         SSVETH _ssvETH = new SSVETH();
@@ -223,6 +226,9 @@ contract StakingPool is Ownable, ReentrancyGuard {
      * @param _newExecutionRewards:  Execution rewards amount added
      */
     function updateExecutionRewards(uint256 _newExecutionRewards) internal {
+        // TODO mevSmoothingPool, create contract, get interface
+        // uint256 executionRewards = address(mevSmoothingPool).balance;
+        // im
         executionRewards += _newExecutionRewards;
     }
 
