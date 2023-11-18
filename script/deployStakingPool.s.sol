@@ -9,7 +9,7 @@ contract DeployStakingPool is Script {
         vm.startBroadcast();
 
         address keyGenerator = 0x706af33e754D8d3647eA3ED45751111FbC2305E1;
-        address withdrawal = 0x706af33e754D8d3647eA3ED45751111FbC2305E1;
+        // address withdrawal = 0x706af33e754D8d3647eA3ED45751111FbC2305E1;
 
         //operator ids
         uint32[4] memory operatorIds;
@@ -26,7 +26,6 @@ contract DeployStakingPool is Script {
         StakingPool stakingPool = new StakingPool(
             keyGenerator,
             depositAddress,
-            withdrawal,
             ssvNetworkContract,
             ssvTokenAddress,
             operatorIds
