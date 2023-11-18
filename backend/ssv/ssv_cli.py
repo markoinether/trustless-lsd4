@@ -121,19 +121,19 @@ class SSV:
         cfg["network"] = "prater"
         cfg["generateInitiatorKey"] = True
         # out files
-        cfg["outputPath"] = "/data/out"
+        cfg["outputPath"] = "/data/generated"
         cfg["privKey"] = "/data/encrypted_private_key.json"
         cfg["privKeyPassword"] = "/data/password"
         # logging
         cfg["logLevel"] = "info"
         cfg["logFormat"] = "json"
         cfg["logLevelFormat"] = "capitalColor"
-        cfg["logFilePath"] = "/data/out/initiator_debug.log"
+        cfg["logFilePath"] = "/data/generated/initiator_debug.log"
 
         with open('configs/initiator.yaml', 'w') as outfile:
             yaml.dump(cfg, outfile)
 
-        output = check_output([cli_path, 'run', '--name', 'ssv_dkg_initiator', '-it', 
+        output = check_output([cli_path, 'run', '-it', 
             '-v', os.getcwd() + '/configs:/data', 'bloxstaking/ssv-dkg:latest', '/app', 'init', '--generateInitiatorKey',
             '--configPath', '/data/initiator.yaml'])
         if "UnhandledPromiseRejectionWarning" in output.decode("utf-8"):
@@ -141,10 +141,10 @@ class SSV:
         elif "Error" in output.decode("utf-8"):
             raise Exception("ssv-cli failed to generate keyshares")
         else:
-            with open("configs/out/initiator_debug.log") as output:
-                s = output.read().rsplit('Writing deposit data json to file","path":"/data/out/', 1)[1]
+            with open("configs/generated/initiator_debug.log") as output:
+                s = output.read().rsplit('Writing keyshares payload to file","path":"/data/generated/', 1)[1]
                 f = s.split(".json")[0] + ".json"
-            return os.getcwd() + "/configs/out/" + f
+            return os.getcwd() + "/configs/generated/" + f
 
     def get_keyshare(self, share_file_path):
         """
