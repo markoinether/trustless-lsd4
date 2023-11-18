@@ -5,7 +5,7 @@ forge install
 source .env
 forge script script/deployStakingPool.s.sol --broadcast --rpc-url $LOCALHOST_URL --private-key $ADDR_A27_0x706
 ```
-paste StakingPool address to backend/config.json "stakepool"
+paste StakingPool address to backend/config.json "stakepool" \
 send 32 eth to StakingPool address
 ```
 cd backend
