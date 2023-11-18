@@ -13,7 +13,7 @@ import "./SSVETH.sol";
  * This also allows developers and users to see customizable output values when the custom error is invoked */
 contract StakingPool is Ownable, ReentrancyGuard {
     address public WhitelistKeyGenerator;
-    // address public WITHDRAWAL_ADDRESS;
+    address public WITHDRAWAL_ADDRESS;
     IDepositContract immutable DepositContract;
     SSVETH public ssvETH;
     uint256 public immutable VALIDATOR_AMOUNT = 32 * 1e18;
@@ -44,12 +44,12 @@ contract StakingPool is Ownable, ReentrancyGuard {
     constructor(
         address keyGenerator,
         address depositAddress,
-        // address withdrawal,
+        address withdrawal,
         address ssv_contract,
         address ssv_token,
         uint32[4] memory ids
     ) {
-        // WITHDRAWAL_ADDRESS = withdrawal;
+        WITHDRAWAL_ADDRESS = withdrawal;
         WhitelistKeyGenerator = keyGenerator;
         DepositContract = IDepositContract(depositAddress);
         SSVETH _ssvETH = new SSVETH();

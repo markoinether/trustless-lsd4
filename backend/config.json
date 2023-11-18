@@ -1,16 +1,16 @@
 {
-    "operators": "",
-    "keystore_files": "",
-    "eth": {
-        "rpc": "http://127.0.0.1:8545",
-        "goerli_rpc": "http://127.0.0.1:8545",
-        "priv_key": "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
-    },
-    "contract_address": {
-        "ssv_network": "0xC3CD9A0aE89Fff83b71b58b6512D43F8a41f363D",
-        "ssv_network_views": "0xAE2C84c48272F5a1746150ef333D5E5B51F68763",
-        "ssv_token": "0x3a9f01091C446bdE031E39ea8354647AFef091E7",
-        "stakepool": "0x7447071d03F8a15b9ea6939181D7F5F3f407e566"
-    },
-    "keystore_pass": "test"
+  "operators": "",
+  "keystore_files": "",
+  "eth": {
+    "rpc": "http://127.0.0.1:8545",
+    "goerli_rpc": "http://127.0.0.1:8545",
+    "priv_key": "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
+  },
+  "contract_address": {
+    "ssv_network": "0xC3CD9A0aE89Fff83b71b58b6512D43F8a41f363D",
+    "ssv_network_views": "0xAE2C84c48272F5a1746150ef333D5E5B51F68763",
+    "ssv_token": "0x3a9f01091C446bdE031E39ea8354647AFef091E7",
+    "stakepool": "0x5B6792A32EAD10f16B920193Fe3B7F837D0Ee5Ec"
+  },
+  "keystore_pass": "test"
 }

@@ -26,6 +26,7 @@ contract DeployStakingPool is Script {
         StakingPool stakingPool = new StakingPool(
             keyGenerator,
             depositAddress,
+            address(this),
             ssvNetworkContract,
             ssvTokenAddress,
             operatorIds

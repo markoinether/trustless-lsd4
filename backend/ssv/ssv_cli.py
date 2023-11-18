@@ -99,7 +99,7 @@ class SSV:
         
         cfg = dict
         cfg["operatorIds"] = operator_ids
-        cfg["withdrawAddress"] = 
+        # cfg["withdrawAddress"] = 
 
         
         output = check_output([cli_path, 'run', '--name', 'ssv_dkg_initiator', '-it', 
