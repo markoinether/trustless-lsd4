@@ -1,7 +1,7 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./interfaces/IDepositContract.sol";
@@ -37,6 +37,9 @@ contract StakingPool is Ownable, ReentrancyGuard {
         bytes sharesPublicKeys,
         uint256 amount
     );
+
+    error StakingPool__CantStakeZeroAmount(uint256 value);
+    error StakingPool__OnlyWhitelistAddress(address sender, address whitelist);
 
     constructor(
         address keyGenerator,
