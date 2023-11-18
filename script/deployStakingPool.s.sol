@@ -9,14 +9,14 @@ contract DeployStakingPool is Script {
         vm.startBroadcast();
 
         address keyGenerator = 0x706af33e754D8d3647eA3ED45751111FbC2305E1;
-        // address withdrawal = 0x706af33e754D8d3647eA3ED45751111FbC2305E1;
+        address withdrawal = 0x706af33e754D8d3647eA3ED45751111FbC2305E1;
 
         //operator ids
         uint32[4] memory operatorIds;
-        operatorIds[0] = 7;
-        operatorIds[1] = 33;
-        operatorIds[2] = 34;
-        operatorIds[3] = 39;
+        operatorIds[0] = 298;
+        operatorIds[1] = 302;
+        operatorIds[2] = 303;
+        operatorIds[3] = 304;
 
         // goerli V4 addresses
         address depositAddress = 0xff50ed3d0ec03aC01D4C79aAd74928BFF48a7b2b;
@@ -26,7 +26,7 @@ contract DeployStakingPool is Script {
         StakingPool stakingPool = new StakingPool(
             keyGenerator,
             depositAddress,
-            address(this),
+            withdrawal,
             ssvNetworkContract,
             ssvTokenAddress,
             operatorIds

@@ -4,7 +4,7 @@ forge script deployStakingPool.s.sol --broadcast --rpc-url $LOCALHOST_URL --priv
 
 source .env
 
-forge install OpenZeppelin/openzeppelin-contracts@v4.8
+forge install OpenZeppelin/openzeppelin-contracts@v4.9.0
 
 forge remove OpenZeppelin/openzeppelin-contracts
 

@@ -4,6 +4,9 @@ from eth_typing import HexAddress, HexStr
 import argparse
 import time
 import traceback
+import requests
+
+import yaml
 
 from ssv.ssv_cli import SSV, Operator
 from staking_deposit.exit_transaction import get_exit_file
@@ -251,8 +254,8 @@ def start_staking(config_file):
                         # can't we use https://web3py.readthedocs.io/en/stable/web3.eth.html#web3.eth.Eth.get_transaction_count ?
                         nonce = ssv_contract.get_latest_nonce(config.contract_address.stakepool)
                         print(nonce)
-                        file = ssv.generate_shares(op,config.contract_address.stakepool,nonce)
-                        #file = ssv.generate_shares_dkg(op,config.contract_address.stakepool,nonce)
+                        # file = ssv.generate_shares(op,config.contract_address.stakepool,nonce)
+                        file = ssv.generate_shares_dkg(op,config.contract_address.stakepool,nonce)
                         fallback[pubkey]["ssv_share"] = file
                         shares = ssv.get_keyshare(file)
                     else:

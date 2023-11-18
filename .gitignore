@@ -19,3 +19,5 @@ validator_keys
 keyshares
 ssv-cli
 fallback.json
+initiator.yaml
+operators_info.json

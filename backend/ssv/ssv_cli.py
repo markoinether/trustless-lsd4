@@ -1,9 +1,11 @@
 import json
+import yaml
 from subprocess import check_output
 import requests
 from collections import namedtuple
 import os
 import platform
+import glob
 
 from typing import List
 
@@ -92,26 +94,55 @@ class SSV:
         :return:
         """
         print("===================================================================================")
-        operator_ids = [str(operator.id) for operator in operator_data]
-        operator_pubkeys = [operator.pubkey for operator in operator_data]
-        output_folder = os.getcwd() + "/keyshares_dkg"
+        operator_ids = [operator.id for operator in operator_data]
+        # operator_pubkeys = [operator.pubkey for operator in operator_data]
         cli_path = self.CLI_PATH_DKG_LINUX_MAC if 'Linux' in platform.system() or 'Darwin' in platform.system() else self.CLI_PATH_WIN
         
-        cfg = dict
-        cfg["operatorIds"] = operator_ids
-        # cfg["withdrawAddress"] = 
+        info = []
+        for i in range(len(operator_ids)):
+            d = dict()
+            d["id"] = operator_ids[i]
+            url = "https://api.ssv.network/api/v4/prater/operators/" + str(operator_ids[i])
+            r = requests.get(url).json()
+            d["ip"] = r["dkg_address"]
+            d["public_key"] = r["public_key"]
+            info.append(d)
+        with open('configs/operators_info.json', 'w') as outfile:
+            json.dump(info, outfile)
 
-        
+        cfg = dict()
+        # input
+        cfg["operatorIds"] = operator_ids
+        cfg["withdrawAddress"] = owner_address
+        cfg["owner"] = owner_address
+        cfg["nonce"] = nonce
+        cfg["operatorsInfoPath"] = "/data/operators_info.json"
+        # constants
+        cfg["network"] = "prater"
+        cfg["generateInitiatorKey"] = True
+        # out files
+        cfg["outputPath"] = "/data/out"
+        cfg["privKey"] = "/data/encrypted_private_key.json"
+        cfg["privKeyPassword"] = "/data/password"
+        # logging
+        cfg["logLevel"] = "info"
+        cfg["logFormat"] = "json"
+        cfg["logLevelFormat"] = "capitalColor"
+        cfg["logFilePath"] = "/data/out/initiator_debug.log"
+
+        with open('configs/initiator.yaml', 'w') as outfile:
+            yaml.dump(cfg, outfile)
+
         output = check_output([cli_path, 'run', '--name', 'ssv_dkg_initiator', '-it', 
-            '-v', os.getcwd() + '/configs:/data', 'bloxstaking/ssv-dkg:latest', '/app init --generateInitiatorKey \
-            --configPath /data/initiator.yaml && \
-            docker rm ssv_dkg_initiator'])
+            '-v', os.getcwd() + '/configs:/data', 'bloxstaking/ssv-dkg:latest', '/app', 'init', '--generateInitiatorKey',
+            '--configPath', '/data/initiator.yaml'])
         if "UnhandledPromiseRejectionWarning" in output.decode("utf-8"):
             raise Exception("ssv-cli failed to generate keyshares")
         elif "Error" in output.decode("utf-8"):
             raise Exception("ssv-cli failed to generate keyshares")
         else:
-            return output_folder + output.decode("utf-8").partition("keyshares")[2].partition(".json")[0] + ".json"
+            r = glob.glob("configs/out/keyshares-*.json")
+            return os.getcwd() + "/" + r[0]
 
     def get_keyshare(self, share_file_path):
         """
