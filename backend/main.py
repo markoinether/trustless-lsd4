@@ -112,7 +112,7 @@ def deposit_keyshare(config_file):
                 raise Exception(
                     "ERROR!!!! keys shares not added as your account doesn't have enough SSV tokens")
         operator_ids = [operator.id for operator in shares.data.operators]
-        tx = stake_pool.send_key_shares(shares.payload.readable.validatorPublicKey, operator_ids,
+        tx = stake_pool.deposit_shares(shares.payload.readable.validatorPublicKey, operator_ids,
                                         shares.payload.readable.sharePublicKeys,
                                         shares.payload.readable.sharePrivateKey,
                                         int(shares.payload.readable.ssvAmount),
@@ -293,7 +293,7 @@ def start_staking(config_file):
                         config.contract_address.stakepool, operator_id)
                     #cluster = [0, 0, 0, True, 0]
                     print(cluster)
-                    tx = stake_pool.send_key_shares(shares["publicKey"], operator_id,
+                    tx = stake_pool.deposit_shares(shares["publicKey"], operator_id,
                                                     shares["sharesData"], fees, cluster,
                                                     web3_eth.account.address)
                     if web3_eth.make_tx(tx):

@@ -20,7 +20,7 @@ contract DeployStakingPool is Script {
 
         // goerli V4 addresses
         address depositAddress = 0xff50ed3d0ec03aC01D4C79aAd74928BFF48a7b2b;
-        address ssvNetworkContract = 0xAfdb141Dd99b5a101065f40e3D7636262dce65b3;
+        address ssvNetworkContract = 0xC3CD9A0aE89Fff83b71b58b6512D43F8a41f363D;
         address ssvTokenAddress = 0x3a9f01091C446bdE031E39ea8354647AFef091E7;
 
         StakingPool stakingPool = new StakingPool(

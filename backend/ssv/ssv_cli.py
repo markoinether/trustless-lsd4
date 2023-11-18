@@ -141,8 +141,10 @@ class SSV:
         elif "Error" in output.decode("utf-8"):
             raise Exception("ssv-cli failed to generate keyshares")
         else:
-            r = glob.glob("configs/out/keyshares-*.json")
-            return os.getcwd() + "/" + r[0]
+            with open("configs/out/initiator_debug.log") as output:
+                s = output.read().rsplit('Writing deposit data json to file","path":"/data/out/', 1)[1]
+                f = s.split(".json")[0] + ".json"
+            return os.getcwd() + "/configs/out/" + f
 
     def get_keyshare(self, share_file_path):
         """
