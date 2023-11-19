@@ -73,7 +73,7 @@ class SSV:
 
         :return:
         """
-        print("===================================================================================")
+        # print("===================================================================================")
         operator_ids = [str(operator.id) for operator in operator_data]
         operator_pubkeys = [operator.pubkey for operator in operator_data]
         output_folder = os.getcwd() + "/keyshares"
@@ -93,7 +93,7 @@ class SSV:
 
         :return:
         """
-        print("===================================================================================")
+        # print("===================================================================================")
         operator_ids = [operator.id for operator in operator_data]
         # operator_pubkeys = [operator.pubkey for operator in operator_data]
         cli_path = self.CLI_PATH_DKG_LINUX_MAC if 'Linux' in platform.system() or 'Darwin' in platform.system() else self.CLI_PATH_WIN
@@ -154,9 +154,9 @@ class SSV:
 
         :return:
         """
-        print(share_file_path)
+        # print(share_file_path)
         with open(share_file_path, "r") as file_path:
-            print(file_path)
+            # print(file_path)
             shares = json.load(file_path)
         file_path.close()
         return shares["payload"]

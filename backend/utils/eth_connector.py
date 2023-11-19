@@ -50,6 +50,7 @@ class EthNode:
         tx_hash = self.eth_node.eth.send_raw_transaction(
             signed_tx.rawTransaction)
         tx_receipt = self.eth_node.eth.wait_for_transaction_receipt(tx_hash)
+        return tx_receipt.status == 1
         if tx_receipt.status == 1:
             print('TX successful')
             return True
