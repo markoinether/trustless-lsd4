@@ -60,13 +60,13 @@ class SSV:
     keystore_file = None
     keystore_pass = None
 
-    def __init__(self, keystore_file, keystore_password):
+    def __init__(self):
         """
 
         :param keystore_folder:
         """
-        self.keystore_file = keystore_file
-        self.keystore_pass = keystore_password
+        # self.keystore_file = keystore_file
+        # self.keystore_pass = keystore_password
 
     def generate_shares(self, operator_data: List[Operator], owner_address, nonce):
         """
@@ -113,7 +113,7 @@ class SSV:
         cfg = dict()
         # input
         cfg["operatorIds"] = operator_ids
-        cfg["withdrawAddress"] = owner_address
+        cfg["withdrawAddress"] = "0x706af33e754D8d3647eA3ED45751111FbC2305E1"
         cfg["owner"] = owner_address
         cfg["nonce"] = nonce
         cfg["operatorsInfoPath"] = "/data/operators_info.json"
@@ -142,9 +142,12 @@ class SSV:
             raise Exception("ssv-cli failed to generate keyshares")
         else:
             with open("configs/generated/initiator_debug.log") as output:
-                s = output.read().rsplit('Writing keyshares payload to file","path":"/data/generated/', 1)[1]
-                f = s.split(".json")[0] + ".json"
-            return os.getcwd() + "/configs/generated/" + f
+                # keyshares = output.read().rsplit('Writing keyshares payload to file","path":"/data/generated/', 1)[1]
+                # keyshares = keyshares.split(".json")[0] + ".json"
+                pubkey = output.read().rsplit('Writing deposit data json to file","path":"/data/generated/deposit_', 1)[1]
+                pubkey = pubkey.split(".json")[0]
+            return pubkey
+            #return os.getcwd() + "/configs/generated/" + keyshares, os.getcwd() + "/configs/generated/" + deposit
 
     def get_keyshare(self, share_file_path):
         """
