@@ -8,6 +8,7 @@ import "./interfaces/IDepositContract.sol";
 import "./interfaces/mocks/ISSVNetwork.sol";
 import "./helpers/Helpers.sol";
 import "./SSVETH.sol";
+import "./OnlyOracle.sol";
 
 /** this contract utilizes custom errors to optimize gas usage, instead of normal `require` conditionals.
  * By using custom errors instead, we don't need to use up storage space on the `require`'s revert string messages.
