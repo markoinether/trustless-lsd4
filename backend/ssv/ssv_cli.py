@@ -60,20 +60,20 @@ class SSV:
     keystore_file = None
     keystore_pass = None
 
-    def __init__(self, keystore_file, keystore_password):
+    def __init__(self):
         """
 
         :param keystore_folder:
         """
-        self.keystore_file = keystore_file
-        self.keystore_pass = keystore_password
+        # self.keystore_file = keystore_file
+        # self.keystore_pass = keystore_password
 
     def generate_shares(self, operator_data: List[Operator], owner_address, nonce):
         """
 
         :return:
         """
-        print("===================================================================================")
+        # print("===================================================================================")
         operator_ids = [str(operator.id) for operator in operator_data]
         operator_pubkeys = [operator.pubkey for operator in operator_data]
         output_folder = os.getcwd() + "/keyshares"
@@ -93,7 +93,7 @@ class SSV:
 
         :return:
         """
-        print("===================================================================================")
+        # print("===================================================================================")
         operator_ids = [operator.id for operator in operator_data]
         # operator_pubkeys = [operator.pubkey for operator in operator_data]
         cli_path = self.CLI_PATH_DKG_LINUX_MAC if 'Linux' in platform.system() or 'Darwin' in platform.system() else self.CLI_PATH_WIN
@@ -113,7 +113,7 @@ class SSV:
         cfg = dict()
         # input
         cfg["operatorIds"] = operator_ids
-        cfg["withdrawAddress"] = owner_address
+        cfg["withdrawAddress"] = "0x706af33e754D8d3647eA3ED45751111FbC2305E1"
         cfg["owner"] = owner_address
         cfg["nonce"] = nonce
         cfg["operatorsInfoPath"] = "/data/operators_info.json"
@@ -121,19 +121,19 @@ class SSV:
         cfg["network"] = "prater"
         cfg["generateInitiatorKey"] = True
         # out files
-        cfg["outputPath"] = "/data/out"
+        cfg["outputPath"] = "/data/generated"
         cfg["privKey"] = "/data/encrypted_private_key.json"
         cfg["privKeyPassword"] = "/data/password"
         # logging
         cfg["logLevel"] = "info"
         cfg["logFormat"] = "json"
         cfg["logLevelFormat"] = "capitalColor"
-        cfg["logFilePath"] = "/data/out/initiator_debug.log"
+        cfg["logFilePath"] = "/data/generated/initiator_debug.log"
 
         with open('configs/initiator.yaml', 'w') as outfile:
             yaml.dump(cfg, outfile)
 
-        output = check_output([cli_path, 'run', '--name', 'ssv_dkg_initiator', '-it', 
+        output = check_output([cli_path, 'run', '-it', 
             '-v', os.getcwd() + '/configs:/data', 'bloxstaking/ssv-dkg:latest', '/app', 'init', '--generateInitiatorKey',
             '--configPath', '/data/initiator.yaml'])
         if "UnhandledPromiseRejectionWarning" in output.decode("utf-8"):
@@ -141,17 +141,22 @@ class SSV:
         elif "Error" in output.decode("utf-8"):
             raise Exception("ssv-cli failed to generate keyshares")
         else:
-            r = glob.glob("configs/out/keyshares-*.json")
-            return os.getcwd() + "/" + r[0]
+            with open("configs/generated/initiator_debug.log") as output:
+                # keyshares = output.read().rsplit('Writing keyshares payload to file","path":"/data/generated/', 1)[1]
+                # keyshares = keyshares.split(".json")[0] + ".json"
+                pubkey = output.read().rsplit('Writing deposit data json to file","path":"/data/generated/deposit_', 1)[1]
+                pubkey = pubkey.split(".json")[0]
+            return pubkey
+            #return os.getcwd() + "/configs/generated/" + keyshares, os.getcwd() + "/configs/generated/" + deposit
 
     def get_keyshare(self, share_file_path):
         """
 
         :return:
         """
-        print(share_file_path)
+        # print(share_file_path)
         with open(share_file_path, "r") as file_path:
-            print(file_path)
+            # print(file_path)
             shares = json.load(file_path)
         file_path.close()
         return shares["payload"]

@@ -43,7 +43,7 @@ class StakingPool:
         """
         return self.contract.functions.getOperators().call()
 
-    def send_key_shares(self, pubkey, operator_ids, shares, amount, cluster, account_address):
+    def deposit_shares(self, pubkey, operator_ids, shares, amount, cluster, account_address):
         """
 
         :return:

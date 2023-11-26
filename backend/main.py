@@ -1,5 +1,6 @@
 import json
 from collections import namedtuple
+import os
 from eth_typing import HexAddress, HexStr
 import argparse
 import time
@@ -112,7 +113,7 @@ def deposit_keyshare(config_file):
                 raise Exception(
                     "ERROR!!!! keys shares not added as your account doesn't have enough SSV tokens")
         operator_ids = [operator.id for operator in shares.data.operators]
-        tx = stake_pool.send_key_shares(shares.payload.readable.validatorPublicKey, operator_ids,
+        tx = stake_pool.deposit_shares(shares.payload.readable.validatorPublicKey, operator_ids,
                                         shares.payload.readable.sharePublicKeys,
                                         shares.payload.readable.sharePrivateKey,
                                         int(shares.payload.readable.ssvAmount),
@@ -189,45 +190,20 @@ def start_staking(config_file):
         fallback = json.load(file)  # used to store the state of the system
     file.close()
     try:
+        web3_eth = EthNode(config.eth.rpc, config.eth.priv_key)
+        goerli_node = EthNode(config.eth.goerli_rpc, config.eth.priv_key)
         while True:
-            mnemonic = get_mnemonic(
-                language="english", words_path=WORD_LISTS_PATH)  # mnemonic
-            web3_eth = EthNode(config.eth.rpc, config.eth.priv_key)
-            goerli_node = EthNode(config.eth.goerli_rpc, config.eth.priv_key)
+            # mnemonic = get_mnemonic(language="english", words_path=WORD_LISTS_PATH)  # mnemonic
             # checks if pool has enough funds for validator to be deposited
-            if web3_eth.get_balance(config.contract_address.stakepool) >= 32 or len(fallback) > 0:
+            staking_pool_balance = web3_eth.get_balance(config.contract_address.stakepool)
+            if staking_pool_balance >= 32 or len(fallback) > 0:
+                print("\nDeteceted ETH balance of " + str(staking_pool_balance) + ", creating DVT validator with DKG")
                 stake_pool = StakingPool(
                     config.contract_address.stakepool, web3_eth.eth_node)
-                print("balance of staking pool:" +
-                      str(web3_eth.get_balance(config.contract_address.stakepool)))
-                num_validators = int(web3_eth.get_balance(
-                    config.contract_address.stakepool) / 32)
-                print("creating validators")
                 validators = ValidatorKey()
-                # generates validator keystore + deposit files
-                keystores, deposit_file = validators.generate_keys(mnemonic=mnemonic, validator_start_index=0,
-                                                                   num_validators=num_validators, folder="",
-                                                                   chain=GOERLI,
-                                                                   keystore_password=config.keystore_pass,
-                                                                   eth1_withdrawal_address=HexAddress(
-                                                                       HexStr(stake_pool.get_withdrawal_address())))
-                print("keys created are:\n")
-                print(keystores)
-                for index, cred in enumerate(validators.get_deposit_data(deposit_file)):
-                    tx = stake_pool.deposit_validator("0x" + cred.pubkey,
-                                                      "0x" + cred.withdrawal_credentials,
-                                                      "0x" + cred.signature,
-                                                      "0x" + cred.deposit_data_root,
-                                                      web3_eth.account.address)
-                    web3_eth.make_tx(tx)
-                    fallback[cred.pubkey] = {
-                        "keystore": keystores[index], "ssv_share": ""}
-                    print("deposit the key" + str(cred.pubkey))
-                print("submitted validators to deposit contract\n")
-                # generates keyshares from validator keystore file for ssv network contract and register them with ssv network
+                num_validators = int(staking_pool_balance / 32)
                 operator_id = stake_pool.get_operator_ids()
-                print("operator ids are:\n")
-                print(operator_id)
+                # print(operator_id)
                 ssv_contract = SSVNetwork(
                     config.contract_address.ssv_network, web3_eth.eth_node, goerli_node.eth_node)
                 ssv_contract_view = SSVNetworkview(
@@ -237,38 +213,55 @@ def start_staking(config_file):
                 # gets ssv network fee
                 network_fees = 0 if ssv_contract_view.get_network_fee(
                 ) is None else ssv_contract_view.get_network_fee()
-                print("network fee is:\n")
-                print(network_fees)
-                pubkeys = list(fallback.keys())
+                # print("network fee is: " + str(network_fees))
+                # pubkeys = list(fallback.keys())
                 # getting operator public keys from their IDs
-                for pubkey in pubkeys:
-                    ssv = SSV(fallback[pubkey]["keystore"],
-                              config.keystore_pass)
+                for i in range(num_validators):
+                    print("Creating DVT validator " + str(i+1) + " of " + str(num_validators) + "...")
+                    nonce = ssv_contract.get_latest_nonce(config.contract_address.stakepool)
+                    # print("nonce is: " + str(nonce))
+                    # file = ssv.generate_shares(op,config.contract_address.stakepool,nonce)
+                    ssv = SSV()
                     op = []
                     for id in operator_id:
                         op.append(Operator(id, ssv_contract.get_operator_pubkey(id),
                                            ssv_contract_view.get_operator_fee(id)))
-                    if fallback[pubkey]["ssv_share"] == "":
+                    print("    Generating dkg keys...", end="")
+                    pubkey = ssv.generate_shares_dkg(op,config.contract_address.stakepool,nonce)
+                    print(" Done")
+                    deposit_file = os.getcwd() + "/configs/generated/" + "deposit_" + pubkey + ".json"
+                    # keystore = os.getcwd() + "/configs/generated/" + "encrypted_private_key-" + pubkey + ".json"
+                    for _, cred in enumerate(validators.get_deposit_data(deposit_file)):
+                        tx = stake_pool.deposit_validator("0x" + cred.pubkey,
+                                "0x" + cred.withdrawal_credentials,
+                                "0x" + cred.signature,
+                                "0x" + cred.deposit_data_root,
+                                web3_eth.account.address)
+                        print("    Depositing validator to beacon chain...", end="")
+                        if web3_eth.make_tx(tx):
+                            print(" Done")
+                        else:
+                            raise Exception("Error depositing validator from deposit file: " + deposit_file)
+                        # fallback[cred.pubkey] = {
+                        # "keystore": keystores[index], "ssv_share": ""}
+                    shares_file = os.getcwd() + "/configs/generated/" + "keyshares-" + pubkey + ".json"
+                    shares = ssv.get_keyshare(shares_file)
+                    # password = os.getcwd() + "/configs/generated/" + "password-" + pubkey + ".json"
+                    # if fallback[pubkey]["ssv_share"] == "":
                         # op = OperatorData("https://api.ssv.network") # todo: depreciated
                         # generate ssv keyshares based on operator public keys
                         # can't we use https://web3py.readthedocs.io/en/stable/web3.eth.html#web3.eth.Eth.get_transaction_count ?
-                        nonce = ssv_contract.get_latest_nonce(config.contract_address.stakepool)
-                        print(nonce)
-                        # file = ssv.generate_shares(op,config.contract_address.stakepool,nonce)
-                        file = ssv.generate_shares_dkg(op,config.contract_address.stakepool,nonce)
-                        fallback[pubkey]["ssv_share"] = file
-                        shares = ssv.get_keyshare(file)
-                    else:
-                        shares = ssv.get_keyshare(
-                            fallback[pubkey]["ssv_share"])
+                    #     fallback[pubkey]["ssv_share"] = file
+                    # else:
+                    #     shares = ssv.get_keyshare(
+                    #         fallback[pubkey]["ssv_share"])
                     # calculates validator burn rate per block times num. blocks to make sure pool has enough balance to pay ssv.network fees
                     fees = (network_fees +
                             sum(operator.fee for operator in op)) * (900000)
                     r = ssv_token.get_balance(
                             web3_eth.eth_node.toChecksumAddress(config.contract_address.stakepool))
                     if r < int(fees):
-                        print(
-                            "ssv token balance of stakepool is less than the required amount. Sending some tokens")
+                        print(    "ssv token balance of stakepool is less than the required amount. Sending some tokens")
                         if ssv_token.get_balance(
                                 web3_eth.eth_node.toChecksumAddress(web3_eth.account.address)) > 2 * int(fees):
                             tx = ssv_token.transfer_token(
@@ -276,7 +269,7 @@ def start_staking(config_file):
                                     config.contract_address.stakepool),
                                 2 * int(fees), web3_eth.account.address)
                             web3_eth.make_tx(tx)
-                            print("Added SSV tokens to stakepool account")
+                            print("    Added SSV tokens to stakepool account")
                         elif ssv_token.get_balance(
                                 web3_eth.eth_node.toChecksumAddress(web3_eth.account.address)) > int(fees):
                             tx = ssv_token.transfer_token(
@@ -291,19 +284,19 @@ def start_staking(config_file):
                                 "ERROR!!!! keys shares not added as your account doesn't have enough SSV tokens")
                     cluster = ssv_contract.get_latest_cluster(
                         config.contract_address.stakepool, operator_id)
-                    #cluster = [0, 0, 0, True, 0]
-                    print(cluster)
-                    tx = stake_pool.send_key_shares(shares["publicKey"], operator_id,
+                    # cluster = [0, 0, 0, True, 0]
+                    # print("cluster info: " + str(cluster))
+                    print("    Registering DVT shares...", end="")
+                    tx = stake_pool.deposit_shares(shares["publicKey"], operator_id,
                                                     shares["sharesData"], fees, cluster,
                                                     web3_eth.account.address)
                     if web3_eth.make_tx(tx):
-                        print("ssv shares submitted to the contract")
-                    fallback.pop(pubkey)
+                        print(" Done")
+                    # fallback.pop(pubkey)
                 fallback = {}
             else:
-                print("waiting for deposits, pool balance less than 32")
+                print("waiting for deposits, pool balance is " + str(staking_pool_balance) + " ETH, need 32 ETH")
                 time.sleep(10)
-                print("trying again")
     except Exception as err:
         print(traceback.format_exc())
         print(fallback)
